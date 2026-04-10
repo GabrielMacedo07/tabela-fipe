@@ -30,7 +30,7 @@ public class Veiculo {
 
     @Override
     public String toString() {
-        return "Cód: " + codigo +
+        return "Código: " + codigo +
                 " Descrição: " + nome;
     }
 }

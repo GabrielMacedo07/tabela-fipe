@@ -58,6 +58,15 @@ public class Principal {
         List<Veiculo> modelos = listaModelos.stream()
                 .map(Veiculo::new).toList();
         modelos.forEach(System.out::println);
+        sc.nextLine();
+
+        System.out.println("Digite um trecho do nome do modelo que queira pesquisar: ");
+        var trecho = sc.nextLine().toUpperCase();
+
+        List<Veiculo> modeloEspecifico = modelos.stream()
+                .filter(v -> v.getNome().toUpperCase().contains(trecho.toUpperCase()))
+                .toList();
+        modeloEspecifico.forEach(System.out::println);
 
 
 
