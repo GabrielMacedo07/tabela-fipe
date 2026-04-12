@@ -1,7 +1,7 @@
 package com.alura.tabela_fipe.principal;
 
-import com.alura.tabela_fipe.model.DadosModelos;
-import com.alura.tabela_fipe.model.DadosVeiculo;
+import com.alura.tabela_fipe.model.Dados;
+import com.alura.tabela_fipe.model.Modelos;
 import com.alura.tabela_fipe.model.Veiculo;
 import com.alura.tabela_fipe.service.ConsumoApi;
 import com.alura.tabela_fipe.service.ConverteDados;
@@ -13,7 +13,6 @@ public class Principal {
     private Scanner sc = new Scanner(System.in);
     private ConsumoApi consumoApi = new ConsumoApi();
     private ConverteDados conversor = new ConverteDados();
-
     private final String ENDERECO = "https://parallelum.com.br/fipe/api/v1/";
 
 
@@ -23,53 +22,68 @@ public class Principal {
                 Carro
                 Moto
                 Caminhão
+                
+                Digite uma das opções para consulta:
                 """;
-        System.out.println(menu);
-
-        Map<String, String> tipos = new HashMap<>();
-        tipos.put("carro", "carros");
-        tipos.put("moto", "motos");
-        tipos.put("caminhao", "caminhoes");
-
-        System.out.println("Digite uma das opções para consultar valores");
+        System.out.print(menu);
+        String endereco = "";
         String opcao = sc.nextLine().toLowerCase();
-        String tipoApi = tipos.get(opcao);
 
-        var json = "";
-        if (tipoApi != null){
-            json = consumoApi.obterDados(ENDERECO +tipoApi+"/marcas");
+        if(opcao.toUpperCase().contains("CARR")){
+            endereco = ENDERECO + "/carros/marcas";
+        } else if (opcao.toUpperCase().contains("MOTO")) {
+            endereco = ENDERECO + "/motos/marcas";
+        } else if (opcao.toUpperCase().contains("CAMINH")) {
+            endereco = ENDERECO + "/caminhoes/marcas";
         } else {
-            System.out.println("Opção inválida");
+            System.out.println("digite um opção válida");
         }
-        List<DadosVeiculo> listaVeiculo = conversor.obterLista(json, DadosVeiculo.class);
-        List<Veiculo> veiculos = listaVeiculo.stream()
-                .map(Veiculo::new).toList();
-        veiculos.forEach(System.out::println);
+
+        var json = consumoApi.obterDados(endereco);
+
+        List<Dados> listaMarca = conversor.obterLista(json, Dados.class);
+        listaMarca.stream()
+                .map(Dados::toString)
+                .forEach(System.out::println);
 
         System.out.println("Informe o código da marca: ");
-        int codigo = sc.nextInt();
-
-        json = consumoApi.obterDados(ENDERECO +tipoApi+"/marcas/"+codigo+"/modelos");
-
-        //tinhamos um objeto modelo que dentro dele estava a lista, peguei esse objeto fiz a desserialização e depois pude extrair a lista.
-        DadosModelos dadosModelos = conversor.obterDados(json, DadosModelos.class);
-
-        List<DadosVeiculo> listaModelos = dadosModelos.modelos();
-        List<Veiculo> modelos = listaModelos.stream()
-                .map(Veiculo::new).toList();
-        modelos.forEach(System.out::println);
+        int codigoMarca = sc.nextInt();
         sc.nextLine();
+
+        endereco = endereco + "/" + codigoMarca +"/modelos";
+        json = consumoApi.obterDados(endereco);
+
+        System.out.println("Modelos dessa marca: ");
+        var modeloLista = conversor.obterDados(json, Modelos.class);
+        modeloLista.modelos().stream()
+                        .map(Dados::toString)
+                                .forEach(System.out::println);
 
         System.out.println("Digite um trecho do nome do modelo que queira pesquisar: ");
         var trecho = sc.nextLine().toUpperCase();
 
-        List<Veiculo> modeloEspecifico = modelos.stream()
-                .filter(v -> v.getNome().toUpperCase().contains(trecho.toUpperCase()))
-                .toList();
-        modeloEspecifico.forEach(System.out::println);
+        List<Dados> modelosFiltrados = modeloLista.modelos().stream()
+                .filter(v -> v.nome().toUpperCase().contains(trecho.toUpperCase()))
+                .collect(Collectors.toList());
+        modelosFiltrados.forEach(System.out::println);
 
+        System.out.println("Digite o codígo do modelo para a busca de valores e anos disponíveis: ");
+        var codigoModelo = sc.nextLine();
 
+        endereco = endereco + "/" + codigoModelo +"/anos";
+        json = consumoApi.obterDados(endereco);
 
+        List<Dados> anos = conversor.obterLista(json, Dados.class);
+        List<Veiculo> veiculos = new ArrayList<>();
+
+        for (int i = 0; i < anos.size(); i++){
+            var enderecoAnos = endereco + "/" + anos.get(i).codigo();
+            json = consumoApi.obterDados(enderecoAnos);
+            Veiculo veiculo = conversor.obterDados(json, Veiculo.class);
+            veiculos.add(veiculo);
+        }
+        System.out.println("Todos os veículos filtrados por ano: ");
+        veiculos.forEach(System.out::println);
     }
 
 }

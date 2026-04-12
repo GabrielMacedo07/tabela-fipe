@@ -1,36 +1,19 @@
 package com.alura.tabela_fipe.model;
 
-public class Veiculo {
-    private Integer codigo;
-    private String nome;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-    public Veiculo(DadosVeiculo dadosVeiculo){
-        this.codigo = dadosVeiculo.Cod();
-        this.nome = dadosVeiculo.Descricao();
-    }
-
-    public void modelos(String json){
-
-    }
-    public Integer getCodigo() {
-        return codigo;
-    }
-
-    public void setCodigo(Integer codigo) {
-        this.codigo = codigo;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record Veiculo(
+        @JsonAlias("Valor") String valor,
+        @JsonAlias("Marca") String marca,
+        @JsonAlias("Modelo") String modelo,
+        @JsonAlias("AnoModelo") Integer ano,
+        @JsonAlias("Combustivel") String tipoCombustivel
+) {
     @Override
     public String toString() {
-        return "Código: " + codigo +
-                " Descrição: " + nome;
+        return String.format("%s %s  ano: %s valor: %s combustível: %s",
+                marca, modelo, ano, valor, tipoCombustivel);
     }
 }
